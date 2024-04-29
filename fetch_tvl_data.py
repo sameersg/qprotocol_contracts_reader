@@ -19,7 +19,7 @@ def fetch_data(url):
         return {}
 
 def fetch_prices():
-    token_ids = 'usd-coin,dai,wrapped-bitcoin,elk-finance,vnx-gold'
+    token_ids = 'usd-coin,dai,wrapped-bitcoin,elk-finance,vnx-gold,weth'
     url = f"https://api.coingecko.com/api/v3/simple/price?ids={token_ids}&vs_currencies=usd"
     try:
         response = requests.get(url)
@@ -45,17 +45,10 @@ def get_contract_balances(address):
 
 prices = fetch_prices()
 
-# Define the columns for your DataFrame
-columns = ['Date', 'BTC in USD', 'ELK in USD', 'VNXAU in USD', 'Bridged WBTC', 'Bridged USDC',
-           'Bridged DAI', 'Bridged ELK', 'Bridged USD Value', 'Total QUSD', 'Locked WBTC', 'Locked USDC',
-           'Locked DAI', 'Borrowing TVL', 'Saving TVL', 'Elk Locked WBTC', 'Elk Locked USDC', 'Elk Locked DAI',
-           'Elk Locked Elk', 'Elk Locked QUSD', 'Elk Locked VNXAU', 'Elk TVL', 'stQ Supply',
-           'Total TVL']
-
-df = pd.DataFrame(columns=columns)
 
 # Collect data for bridged assets
 wbtc_info = get_token_info("0xde397e6C442A3E697367DecBF0d50733dc916b79")
+weth_info = get_token_info("0xd56F9ffF3fe3BD0C7B52afF9A42eb70E05A287Cc")
 usdc_info = get_token_info("0x79Cb92a2806BF4f82B614A84b6805963b8b1D8BB")
 dai_info = get_token_info("0xDeb87c37Dcf7F5197026f574cd40B3Fc8Aa126D1")
 elk_info = get_token_info("0xeEeEEb57642040bE42185f49C52F7E9B38f8eeeE")
@@ -72,6 +65,8 @@ elk_locked_vnxau = get_contract_balances("0x4300B43659e2d4300FF9379Db65cBFb036Ab
 
 wbtc_usd_price = prices.get('wrapped-bitcoin', {}).get('usd', 0)
 elk_usd_price = prices.get('elk-finance', {}).get('usd', 0)
+vnxau_usd_price = prices.get('vnx-gold', {}).get('usd', 0)
+weth_usd_price = prices.get('weth', {}).get('usd', 0)
 
 # Calculate totals and values
 elk_locked_qusd_total = sum([
@@ -82,18 +77,22 @@ elk_locked_qusd_total = sum([
     elk_locked_vnxau.get('QUSD', 0)
 ])
 bridged_elk = float(elk_info['total_supply']) - float(reservoir_supply_info.get('ELK', 0))
+
 elk_usd_value = elk_locked_wbtc.get('WBTC', 'Unknown') * wbtc_usd_price + \
                 usdc_info['total_supply'] * 1 + \
                 dai_info['total_supply'] * 1 + \
                 bridged_elk * elk_usd_price
+
 bridged_usd_value = wbtc_info['total_supply'] * wbtc_usd_price + \
                     elk_locked_usdc.get('USDC', 'Unknown') * 1 + \
                     elk_locked_dai.get('DAI', 'Unknown') * 1 + \
                     elk_locked_qusd_total + \
                     elk_locked_elk.get('ELK', 'Unknown') * elk_usd_price
+
 borrowing_tvl = locked_contract_info.get('WBTC', 0) * wbtc_usd_price + \
                 locked_contract_info.get('USDC', 0) + \
                 locked_contract_info.get('DAI', 0)
+
 total_tvl = borrowing_tvl + \
             saved_qusd.get('QUSD', 'Unknown') + \
             elk_usd_value
@@ -104,10 +103,12 @@ data_row = {
     'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     'btc_in_usd': wbtc_usd_price,
     'elk_in_usd': elk_usd_price,
-    'vnxau_in_usd': prices.get("vnx-gold", {}).get('usd', 'N/A'),
+    'vnxau_in_usd': vnxau_usd_price,
+    'weth_in_usd': weth_usd_price,
     'bridged_wbtc': wbtc_info['total_supply'],
     'bridged_usdc': usdc_info['total_supply'],
     'bridged_dai': dai_info['total_supply'],
+    'bridged_weth': weth_info['total_supply'],
     'bridged_elk': bridged_elk,
     'bridged_usd_value': bridged_usd_value,
     'total_qusd': total_qusd['total_supply'],
@@ -146,8 +147,9 @@ else:
 df = pd.read_csv(csv_file_path)
 print(df)
 
+
 # Dune upload part
-def upload_to_dune(csv_path, namespace, table_name):
+""" def upload_to_dune(csv_path, namespace, table_name):
     url = f"https://api.dune.com/api/v1/table/{username}/{tablename}/insert"
     headers = {
         "X-DUNE-API-KEY": "",
@@ -158,4 +160,4 @@ def upload_to_dune(csv_path, namespace, table_name):
     print(response.text)
 
 # Call the upload function
-upload_to_dune(csv_file_path, 'my_user', 'my_table')
+upload_to_dune(csv_file_path, 'my_user', 'my_table') """
