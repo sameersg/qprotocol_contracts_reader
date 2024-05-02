@@ -15,6 +15,7 @@ payload = {
         {"name": "elk_in_usd", "type": "double"},
         {"name": "vnxau_in_usd", "type": "double"},
         {"name": "weth_in_usd", "type": "double"},
+        {"name": "stQ_conv_rate", "type": "double"},
         {"name": "bridged_wbtc", "type": "double"},
         {"name": "bridged_usdc", "type": "double"},
         {"name": "bridged_dai", "type": "double"},

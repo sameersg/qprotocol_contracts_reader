@@ -45,6 +45,22 @@ def get_contract_balances(address):
 
 prices = fetch_prices()
 
+def get_stq_price():
+    url = "https://explorer.q.org/api/v2/smart-contracts/0x1CC2f3A24F5c826af7F98A91b98BeC2C05115d01/methods-read-proxy?is_custom_abi=true&from=0xF61f5c4a3664501F499A9289AaEe76a709CE536e"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        # Loop through the list of methods to find the getStQPrice method
+        for method in data:
+            if method.get('method_id') == 'f2f3fea8' and method['name'] == 'getStQPrice':
+                # Assuming the decimals are 18 for stQ; adjust as necessary
+                return wei_to_token(int(method['outputs'][0]['value']), 18)
+    except requests.RequestException as e:
+        print(f"Failed to fetch STQ price: {e}")
+        return None
+
+
 
 # Collect data for bridged assets
 wbtc_info = get_token_info("0xde397e6C442A3E697367DecBF0d50733dc916b79")
@@ -67,6 +83,8 @@ wbtc_usd_price = prices.get('wrapped-bitcoin', {}).get('usd', 0)
 elk_usd_price = prices.get('elk-finance', {}).get('usd', 0)
 vnxau_usd_price = prices.get('vnx-gold', {}).get('usd', 0)
 weth_usd_price = prices.get('weth', {}).get('usd', 0)
+stq_price = get_stq_price()
+
 
 # Calculate totals and values
 elk_locked_qusd_total = sum([
@@ -105,6 +123,7 @@ data_row = {
     'elk_in_usd': elk_usd_price,
     'vnxau_in_usd': vnxau_usd_price,
     'weth_in_usd': weth_usd_price,
+    'stQ_conv_rate': stq_price,
     'bridged_wbtc': wbtc_info['total_supply'],
     'bridged_usdc': usdc_info['total_supply'],
     'bridged_dai': dai_info['total_supply'],
@@ -146,6 +165,7 @@ else:
 # Read and display to verify
 df = pd.read_csv(csv_file_path)
 print(df)
+display(df)
 
 
 # Dune upload part
