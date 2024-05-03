@@ -123,7 +123,7 @@ data_row = {
     'elk_in_usd': elk_usd_price,
     'vnxau_in_usd': vnxau_usd_price,
     'weth_in_usd': weth_usd_price,
-    'stQ_conv_rate': stq_price,
+    'stq_conv_rate': stq_price,
     'bridged_wbtc': wbtc_info['total_supply'],
     'bridged_usdc': usdc_info['total_supply'],
     'bridged_dai': dai_info['total_supply'],
@@ -151,22 +151,33 @@ data_row = {
 # Convert the dictionary to a DataFrame
 new_row = pd.DataFrame([data_row])
 
-# Path to the CSV file
+# Absolute path to the CSV file
 csv_file_path = 'token_and_contract_data.csv'
 
-# Check if the file exists to append or create new
-if os.path.exists(csv_file_path):
+# Insert debugging code here to log the path and check file existence
+print(f"Attempting to write to CSV at: {os.path.abspath(csv_file_path)}")
+
+# Attempt to write and catch any exception
+print("Writing to CSV at:", csv_file_path)
+
+try:
+    if os.path.exists(csv_file_path):
+        print("File exists. Reading and appending...")
+        df = pd.read_csv(csv_file_path)
+        df = pd.concat([df, new_row], ignore_index=True)
+        df.to_csv(csv_file_path, index=False)
+        print("Data appended and saved.")
+    else:
+        print("File does not exist. Creating new file...")
+        new_row.to_csv(csv_file_path, index=False)
+        print("New file created and data written.")
+
+    # Verify the write operation
     df = pd.read_csv(csv_file_path)
-    df = pd.concat([df, new_row], ignore_index=True)
-    df.to_csv(csv_file_path, index=False)
-else:
-    new_row.to_csv(csv_file_path, index=False)
-
-# Read and display to verify
-df = pd.read_csv(csv_file_path)
-print(df)
-display(df)
-
+    print("Data successfully written. Here's a preview:")
+    print(df.tail())  # Display last few rows to verify
+except Exception as e:
+    print(f"Error during file operation: {e}")
 
 # Dune upload part
 """ def upload_to_dune(csv_path, namespace, table_name):
