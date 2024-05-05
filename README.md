@@ -27,7 +27,7 @@ This repository contains Python scripts and SQL queries for collecting, processi
 
 1. Clone the repository:
    ```
-   git clone 
+   git clone https://github.com/sameersg/qprotocol_token_contracts_reader.git
    ```
 
 2. Install required packages:

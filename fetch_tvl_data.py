@@ -180,7 +180,7 @@ except Exception as e:
     print(f"Error during file operation: {e}")
 
 # Dune upload part
-""" def upload_to_dune(csv_path, namespace, table_name):
+def upload_to_dune(csv_path, namespace, table_name):
     url = f"https://api.dune.com/api/v1/table/{username}/{tablename}/insert"
     headers = {
         "X-DUNE-API-KEY": "",
@@ -191,4 +191,4 @@ except Exception as e:
     print(response.text)
 
 # Call the upload function
-upload_to_dune(csv_file_path, 'my_user', 'my_table') """
+#upload_to_dune(csv_file_path, 'my_user', 'my_table') 
