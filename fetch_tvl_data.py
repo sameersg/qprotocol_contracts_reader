@@ -3,8 +3,6 @@ import pandas as pd
 from datetime import datetime
 import os
 
-def wei_to_ether(wei_value):
-    return float(wei_value) / 10**18
 
 def wei_to_token(wei_value, decimals):
     return float(wei_value) / (10 ** decimals)
@@ -94,26 +92,8 @@ elk_locked_qusd_total = sum([
     elk_locked_elk.get('QUSD', 0),
     elk_locked_vnxau.get('QUSD', 0)
 ])
+
 bridged_elk = float(elk_info['total_supply']) - float(reservoir_supply_info.get('ELK', 0))
-
-elk_usd_value = elk_locked_wbtc.get('WBTC', 'Unknown') * wbtc_usd_price + \
-                usdc_info['total_supply'] * 1 + \
-                dai_info['total_supply'] * 1 + \
-                bridged_elk * elk_usd_price
-
-bridged_usd_value = wbtc_info['total_supply'] * wbtc_usd_price + \
-                    elk_locked_usdc.get('USDC', 'Unknown') * 1 + \
-                    elk_locked_dai.get('DAI', 'Unknown') * 1 + \
-                    elk_locked_qusd_total + \
-                    elk_locked_elk.get('ELK', 'Unknown') * elk_usd_price
-
-borrowing_tvl = locked_contract_info.get('WBTC', 0) * wbtc_usd_price + \
-                locked_contract_info.get('USDC', 0) + \
-                locked_contract_info.get('DAI', 0)
-
-total_tvl = borrowing_tvl + \
-            saved_qusd.get('QUSD', 'Unknown') + \
-            elk_usd_value
 
 
 # Prepare and format data row for DataFrame
@@ -129,12 +109,10 @@ data_row = {
     'bridged_dai': dai_info['total_supply'],
     'bridged_weth': weth_info['total_supply'],
     'bridged_elk': bridged_elk,
-    'bridged_usd_value': bridged_usd_value,
     'total_qusd': total_qusd['total_supply'],
     'locked_wbtc': locked_contract_info.get('WBTC', 'Unknown'),
     'locked_usdc': locked_contract_info.get('USDC', 'Unknown'),
     'locked_dai': locked_contract_info.get('DAI', 'Unknown'),
-    'borrowing_tvl': borrowing_tvl,
     'saving_tvl': saved_qusd.get('QUSD', 'Unknown'),
     'elk_locked_wbtc': elk_locked_wbtc.get('WBTC', 'Unknown'),
     'elk_locked_usdc': elk_locked_usdc.get('USDC', 'Unknown'),
@@ -142,9 +120,27 @@ data_row = {
     'elk_locked_elk': elk_locked_elk.get('ELK', 'Unknown'),
     'elk_locked_qusd': elk_locked_qusd_total,
     'elk_locked_vnxau': elk_locked_vnxau.get('VNXAU', 'Unknown'),
-    'elk_tvl': elk_usd_value,
     'stq_supply': stQ_meta['total_supply'],
-    'total_tvl': total_tvl
+    'extra_1': 0.0,
+    'extra_2': 0.0,
+    'extra_3': 0.0,
+    'extra_4': 0.0,
+    'extra_5': 0.0,
+    'extra_6': 0.0,
+    'extra_7': 0.0,
+    'extra_8': 0.0,
+    'extra_9': 0.0,
+    'extra_10': 0.0,
+    'extra_11': 0.0,
+    'extra_12': 0.0,
+    'extra_13': 0.0,
+    'extra_14': 0.0,
+    'extra_15': 0.0,
+    'extra_16': 0.0,
+    'extra_17': 0.0,
+    'extra_18': 0.0,
+    'extra_19': 0.0,
+    'extra_20': 0.0
 }
 
 
