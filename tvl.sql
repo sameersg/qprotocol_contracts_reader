@@ -4,13 +4,16 @@ WITH DailyData AS (
     DATE_TRUNC('month', "date") AS "Month",
     ROUND(btc_in_usd, 2) AS btc_in_usd,
     ROUND(elk_in_usd, 2) AS elk_in_usd,
+    ROUND(weth_in_usd, 2) AS weth_in_usd,
+    ROUND(stq_conv_rate, 2) AS stq_conv_rate,
     ROUND(vnxau_in_usd, 2) AS vnxau_in_usd,
     ROUND(bridged_wbtc, 2) AS bridged_wbtc,
     ROUND(bridged_usdc, 2) AS bridged_usdc,
     ROUND(bridged_dai, 2) AS bridged_dai,
+    ROUND(bridged_weth, 2) AS bridged_weth,
     ROUND(bridged_elk, 2) AS bridged_elk,
     ROUND(bridged_usd_value, 2) AS bridged_usd_value,
-    ROUND(bridged_wbtc * btc_in_usd + bridged_usdc * 1 + bridged_dai * 1 + bridged_elk * elk_in_usd, 2) AS recalculated_bridged_usd_value,
+    ROUND(bridged_wbtc * btc_in_usd + bridged_usdc * 1 + bridged_dai * 1 + bridged_elk * elk_in_usd + bridged_weth * weth_in_usd, 2) AS recalculated_bridged_usd_value,
     ROUND(total_qusd, 2) AS total_qusd,
     ROUND(locked_wbtc, 2) AS locked_wbtc,
     ROUND(locked_usdc, 2) AS locked_usdc,
@@ -28,6 +31,8 @@ WITH DailyData AS (
     ROUND(elk_locked_wbtc * btc_in_usd + elk_locked_usdc * 1 + elk_locked_dai * 1 + elk_locked_elk * elk_in_usd + elk_locked_qusd * 1 + elk_locked_vnxau * vnxau_in_usd, 2) AS recalculated_elk_tvl,
     ROUND(stq_supply, 2) AS stq_supply,
     ROUND(total_tvl, 2) AS total_tvl,
+    ROUND(stq_supply * stq_conv_rate * 0.33 , 2) AS metapool_tvl, 
+    ROUND(elk_locked_wbtc * btc_in_usd + elk_locked_usdc * 1 + elk_locked_dai * 1 + elk_locked_elk * elk_in_usd + elk_locked_qusd * 1 + elk_locked_vnxau * vnxau_in_usd + locked_wbtc * btc_in_usd + locked_usdc * 1 + locked_dai * 1 + saving_tvl + stq_supply * stq_conv_rate * 0.33 , 2) AS recalculated_total_tvl_wth_stq,
     ROUND(elk_locked_wbtc * btc_in_usd + elk_locked_usdc * 1 + elk_locked_dai * 1 + elk_locked_elk * elk_in_usd + elk_locked_qusd * 1 + elk_locked_vnxau * vnxau_in_usd + locked_wbtc * btc_in_usd + locked_usdc * 1 + locked_dai * 1 + saving_tvl, 2) AS recalculated_total_tvl
 
   FROM
