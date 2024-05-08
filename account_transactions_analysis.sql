@@ -2,12 +2,12 @@ WITH daily_transactions AS (
   SELECT
     DATE("Date") AS "Date",
     "Value" - LAG("Value", 1, "Value") OVER (ORDER BY "Date") AS "Daily_Transactions"
-  FROM "dune"."0xsg"."dataset_transactions_growth"
+  FROM "dune"."0xsg"."transactions_growth"
 ), daily_active_accounts AS (
   SELECT
     DATE("Date") AS "Date",
     "Value" AS "Active_Accounts"
-  FROM "dune"."0xsg"."dataset_active_accounts"
+  FROM "dune"."0xsg"."active_accounts"
 ), combined_data AS (
   SELECT
     dt."Date",

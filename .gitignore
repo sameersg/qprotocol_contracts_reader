@@ -1,3 +1,6 @@
 token_and_contract_data.csv
 last_processed.json
 mint_burn_data.csv
+active_accounts_data.csv
+general_stats_data.csv
+transactions_growth_data.csv
