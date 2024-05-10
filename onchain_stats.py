@@ -52,17 +52,28 @@ def save_data_to_csv(data, filename, existing_dates, ignore_today=True):
 def save_general_stats_to_csv(stats, filename):
     file_exists = os.path.isfile(filename)
     with open(filename, mode='a', newline='') as file:
-        fieldnames = ['timestamp'] + list(stats.keys())
+        fieldnames = ['timestamp', 'average_block_time', 'coin_price', 'gas_average', 'gas_fast', 'gas_slow', 
+                      'gas_used_today', 'market_cap', 'network_utilization_percentage', 'static_gas_price', 
+                      'total_addresses', 'total_blocks', 'total_gas_used', 'total_transactions', 'transactions_today']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         if not file_exists:
             writer.writeheader()
         stats['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Add current timestamp
+        if 'gas_prices' in stats and isinstance(stats['gas_prices'], dict):
+            gas_prices = stats.pop('gas_prices')
+            stats['gas_average'] = gas_prices.get('average', '')
+            stats['gas_fast'] = gas_prices.get('fast', '')
+            stats['gas_slow'] = gas_prices.get('slow', '')
+        else:
+            stats['gas_average'], stats['gas_fast'], stats['gas_slow'] = '', '', ''
+        
         writer.writerow(stats)
 
+# Function to upload CSV to Dune
 def upload_to_dune(csv_path, space, tablename):
     url = f"https://api.dune.com/api/v1/table/{space}/{tablename}/insert"
     headers = {
-        "X-DUNE-API-KEY": "APIKEY",  # Replace with your actual Dune API key
+        "X-DUNE-API-KEY": "your_api_key_here",  # Replace with your actual Dune API key
         "Content-Type": "text/csv"
     }
     with open(csv_path, "rb") as data:
@@ -86,7 +97,7 @@ def main():
     save_general_stats_to_csv(general_stats_data, 'general_stats_data.csv')
 
     # Define your Dune space identifier
-    dune_space = 'SPACE'  # Replace with your actual space identifier
+    dune_space = 'your_space_identifier'  # Replace with your actual space identifier
 
     # Upload data to Dune with specified space and table names
     upload_to_dune('active_accounts_data.csv', dune_space, 'active_accounts')
