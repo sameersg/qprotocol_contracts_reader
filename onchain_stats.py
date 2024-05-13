@@ -48,6 +48,7 @@ def save_data_to_csv(data, filename, existing_dates, ignore_today=True):
                 writer.writerow(row)
                 existing_dates.add(row['date'])
 
+
 # Function to save general stats data to CSV
 def save_general_stats_to_csv(stats, filename):
     file_exists = os.path.isfile(filename)
@@ -58,8 +59,12 @@ def save_general_stats_to_csv(stats, filename):
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         if not file_exists:
             writer.writeheader()
-        stats['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Add current timestamp
-        if 'gas_prices' in stats and isinstance(stats['gas_prices'], dict):
+        
+        # Format the timestamp for the CSV file
+        stats['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # Ensure gas_prices is properly extracted and removed
+        if 'gas_prices' in stats:
             gas_prices = stats.pop('gas_prices')
             stats['gas_average'] = gas_prices.get('average', '')
             stats['gas_fast'] = gas_prices.get('fast', '')
@@ -67,7 +72,13 @@ def save_general_stats_to_csv(stats, filename):
         else:
             stats['gas_average'], stats['gas_fast'], stats['gas_slow'] = '', '', ''
         
+        # Check if all necessary fields are in stats; if not, set them to an empty string
+        for field in fieldnames:
+            if field not in stats:
+                stats[field] = ''
+                
         writer.writerow(stats)
+
 
 # Function to upload CSV to Dune
 def upload_to_dune(csv_path, space, tablename):
