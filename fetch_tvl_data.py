@@ -3,7 +3,6 @@ import pandas as pd
 from datetime import datetime
 import os
 
-
 def wei_to_token(wei_value, decimals):
     return float(wei_value) / (10 ** decimals)
 
@@ -17,7 +16,7 @@ def fetch_data(url):
         return {}
 
 def fetch_prices():
-    token_ids = 'usd-coin,dai,wrapped-bitcoin,elk-finance,vnx-gold,weth'
+    token_ids = 'usd-coin,dai,wrapped-bitcoin,elk-finance,vnx-gold,weth,q-protocol'
     url = f"https://api.coingecko.com/api/v3/simple/price?ids={token_ids}&vs_currencies=usd"
     try:
         response = requests.get(url)
@@ -49,18 +48,13 @@ def get_stq_price():
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        # Loop through the list of methods to find the getStQPrice method
         for method in data:
             if method.get('method_id') == 'f2f3fea8' and method['name'] == 'getStQPrice':
-                # Assuming the decimals are 18 for stQ; adjust as necessary
                 return wei_to_token(int(method['outputs'][0]['value']), 18)
     except requests.RequestException as e:
         print(f"Failed to fetch STQ price: {e}")
         return None
 
-
-
-# Collect data for bridged assets
 wbtc_info = get_token_info("0xde397e6C442A3E697367DecBF0d50733dc916b79")
 weth_info = get_token_info("0xd56F9ffF3fe3BD0C7B52afF9A42eb70E05A287Cc")
 usdc_info = get_token_info("0x79Cb92a2806BF4f82B614A84b6805963b8b1D8BB")
@@ -77,14 +71,22 @@ elk_locked_dai = get_contract_balances("0x566989560917879868cb98C5EF72d9050298c4
 elk_locked_elk = get_contract_balances("0x8490a1ece0363dE138d39022629785e060422571")
 elk_locked_vnxau = get_contract_balances("0x4300B43659e2d4300FF9379Db65cBFb036Ab9096")
 
+#Infinity 
+inf_elk = get_contract_balances("0x1EAf38375CA45685D3FCa0c53e9fa6b02bb9B0D5")
+inf_weth = get_contract_balances("0x367750af92a2C427Cc94E1c562DEa9753a42c27e")
+inf_usdc = get_contract_balances("0x41AA6785b4ffE18A79bba796793E828059Ff342a")
+
+
+
+
+
 wbtc_usd_price = prices.get('wrapped-bitcoin', {}).get('usd', 0)
 elk_usd_price = prices.get('elk-finance', {}).get('usd', 0)
 vnxau_usd_price = prices.get('vnx-gold', {}).get('usd', 0)
 weth_usd_price = prices.get('weth', {}).get('usd', 0)
+qgov_usd_price = prices.get('q-protocol', {}).get('usd', 0)
 stq_price = get_stq_price()
 
-
-# Calculate totals and values
 elk_locked_qusd_total = sum([
     elk_locked_wbtc.get('QUSD', 0),
     elk_locked_usdc.get('QUSD', 0),
@@ -95,8 +97,6 @@ elk_locked_qusd_total = sum([
 
 bridged_elk = float(elk_info['total_supply']) - float(reservoir_supply_info.get('ELK', 0))
 
-
-# Prepare and format data row for DataFrame
 data_row = {
     'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     'btc_in_usd': wbtc_usd_price,
@@ -121,10 +121,10 @@ data_row = {
     'elk_locked_qusd': elk_locked_qusd_total,
     'elk_locked_vnxau': elk_locked_vnxau.get('VNXAU', 'Unknown'),
     'stq_supply': stQ_meta['total_supply'],
-    'extra_1': 0.0,
-    'extra_2': 0.0,
-    'extra_3': 0.0,
-    'extra_4': 0.0,
+    'extra_1': inf_elk.get('ELK', 'Unknown'),
+    'extra_2': inf_weth.get('WETH', 'Unknown'),
+    'extra_3': inf_usdc.get('USDC', 'Unknown'),
+    'extra_4': qgov_usd_price,
     'extra_5': 0.0,
     'extra_6': 0.0,
     'extra_7': 0.0,
@@ -143,19 +143,16 @@ data_row = {
     'extra_20': 0.0
 }
 
-
-# Convert the dictionary to a DataFrame
 new_row = pd.DataFrame([data_row])
-
-# Absolute path to the CSV file
 csv_file_path = 'token_and_contract_data.csv'
-
-# Insert debugging code here to log the path and check file existence
 print(f"Attempting to write to CSV at: {os.path.abspath(csv_file_path)}")
 
-# Attempt to write and catch any exception
-print("Writing to CSV at:", csv_file_path)
-
+# Manually set this flag to True for the first run, then False for subsequent runs
+first_run = False
+# Define the user and table names for Dune upload
+dune_user = ''  # Replace with your Dune user name
+dune_table = ''  # Replace with your Dune table name
+api = '' # Replace with your Dune api
 try:
     if os.path.exists(csv_file_path):
         print("File exists. Reading and appending...")
@@ -168,23 +165,30 @@ try:
         new_row.to_csv(csv_file_path, index=False)
         print("New file created and data written.")
 
-    # Verify the write operation
     df = pd.read_csv(csv_file_path)
     print("Data successfully written. Here's a preview:")
-    print(df.tail())  # Display last few rows to verify
+    print(df.tail())
 except Exception as e:
     print(f"Error during file operation: {e}")
 
-# Dune upload part
 def upload_to_dune(csv_path, namespace, table_name):
-    url = f"https://api.dune.com/api/v1/table/{username}/{tablename}/insert"
+    url = f"https://api.dune.com/api/v1/table/{namespace}/{table_name}/insert"
     headers = {
-        "X-DUNE-API-KEY": "",
+        "X-DUNE-API-KEY": api,
         "Content-Type": "text/csv"
     }
     with open(csv_path, "rb") as data:
         response = requests.request("POST", url, data=data, headers=headers)
     print(response.text)
 
-# Call the upload function
-#upload_to_dune(csv_file_path, 'my_user', 'my_table') 
+if first_run:
+    print("First run: Uploading entire CSV.")
+    upload_to_dune(csv_file_path, dune_user, dune_table)
+else:
+    print("Subsequent run: Uploading new data only.")
+    temp_csv_path = 'temp_new_data.csv'
+    print("Subsequent run: Created tempfile")
+    new_row.to_csv(temp_csv_path, index=False)
+    upload_to_dune(temp_csv_path, dune_user, dune_table)
+    os.remove(temp_csv_path)
+    print("Subsequent run: Deleted tempfile")

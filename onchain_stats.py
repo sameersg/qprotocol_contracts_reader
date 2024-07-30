@@ -64,8 +64,8 @@ def save_general_stats_to_csv(stats, filename):
         stats['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         # Ensure gas_prices is properly extracted and removed
-        if 'gas_prices' in stats:
-            gas_prices = stats.pop('gas_prices')
+        gas_prices = stats.pop('gas_prices', {})
+        if gas_prices:
             stats['gas_average'] = gas_prices.get('average', '')
             stats['gas_fast'] = gas_prices.get('fast', '')
             stats['gas_slow'] = gas_prices.get('slow', '')
@@ -74,10 +74,11 @@ def save_general_stats_to_csv(stats, filename):
         
         # Check if all necessary fields are in stats; if not, set them to an empty string
         for field in fieldnames:
-            if field not in stats:
+            if field not in stats or stats[field] is None:
                 stats[field] = ''
                 
         writer.writerow(stats)
+
 
 
 # Function to upload CSV to Dune
