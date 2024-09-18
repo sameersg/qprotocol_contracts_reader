@@ -4,3 +4,4 @@ mint_burn_data.csv
 active_accounts_data.csv
 general_stats_data.csv
 transactions_growth_data.csv
+.env

@@ -2,6 +2,16 @@ import requests
 import pandas as pd
 from datetime import datetime
 import os
+import time  # Import the time module
+from dotenv import load_dotenv
+
+load_dotenv()
+
+sleeptime = 2
+
+DUNE_API_KEY = os.getenv("DUNE_API_KEY2")
+NAMESPACE = os.getenv("NAMESPACE2")
+TABLE_NAME = os.getenv("TABLE_NAME2") 
 
 def wei_to_token(wei_value, decimals):
     return float(wei_value) / (10 ** decimals)
@@ -28,6 +38,7 @@ def fetch_prices():
 
 def get_token_info(address):
     data = fetch_data(f"https://explorer.q.org/api/v2/tokens/{address}")
+    time.sleep(15)  # Add delay
     return {
         'name': data.get('name', 'Unknown'),
         'total_supply': wei_to_token(data.get('total_supply', 0), int(data.get('decimals', 0))) if data.get('total_supply') else 'Unknown'
@@ -35,17 +46,20 @@ def get_token_info(address):
 
 def get_contract_balances(address):
     data = fetch_data(f"https://explorer.q.org/api/v2/addresses/{address}/token-balances")
+    time.sleep(sleeptime)  # Add delay
     balances = {}
     for token in data:
         balances[token['token']['symbol']] = wei_to_token(token['value'], int(token['token']['decimals']))
     return balances
 
 prices = fetch_prices()
+time.sleep(sleeptime)  # Add delay
 
 def get_stq_price():
     url = "https://explorer.q.org/api/v2/smart-contracts/0x1CC2f3A24F5c826af7F98A91b98BeC2C05115d01/methods-read-proxy?is_custom_abi=true&from=0xF61f5c4a3664501F499A9289AaEe76a709CE536e"
     try:
         response = requests.get(url)
+        time.sleep(sleeptime)  # Add delay
         response.raise_for_status()
         data = response.json()
         for method in data:
@@ -54,6 +68,7 @@ def get_stq_price():
     except requests.RequestException as e:
         print(f"Failed to fetch STQ price: {e}")
         return None
+
 
 wbtc_info = get_token_info("0xde397e6C442A3E697367DecBF0d50733dc916b79")
 weth_info = get_token_info("0xd56F9ffF3fe3BD0C7B52afF9A42eb70E05A287Cc")
@@ -149,10 +164,13 @@ print(f"Attempting to write to CSV at: {os.path.abspath(csv_file_path)}")
 
 # Manually set this flag to True for the first run, then False for subsequent runs
 first_run = False
+
 # Define the user and table names for Dune upload
-dune_user = ''  # Replace with your Dune user name
-dune_table = ''  # Replace with your Dune table name
-api = '' # Replace with your Dune api
+dune_user = NAMESPACE  # Replace with your Dune user name
+dune_table = TABLE_NAME  # Replace with your Dune table name
+api_key = DUNE_API_KEY # Replace with your Dune api
+
+
 try:
     if os.path.exists(csv_file_path):
         print("File exists. Reading and appending...")
@@ -171,10 +189,10 @@ try:
 except Exception as e:
     print(f"Error during file operation: {e}")
 
-def upload_to_dune(csv_path, namespace, table_name):
+def upload_to_dune(csv_path, namespace, table_name, api_key):
     url = f"https://api.dune.com/api/v1/table/{namespace}/{table_name}/insert"
     headers = {
-        "X-DUNE-API-KEY": api,
+        "X-DUNE-API-KEY": api_key,
         "Content-Type": "text/csv"
     }
     with open(csv_path, "rb") as data:
@@ -183,12 +201,12 @@ def upload_to_dune(csv_path, namespace, table_name):
 
 if first_run:
     print("First run: Uploading entire CSV.")
-    upload_to_dune(csv_file_path, dune_user, dune_table)
+    upload_to_dune(csv_file_path, dune_user, dune_table, api_key)
 else:
     print("Subsequent run: Uploading new data only.")
     temp_csv_path = 'temp_new_data.csv'
     print("Subsequent run: Created tempfile")
     new_row.to_csv(temp_csv_path, index=False)
-    upload_to_dune(temp_csv_path, dune_user, dune_table)
+    upload_to_dune(temp_csv_path, dune_user, dune_table, api_key)
     os.remove(temp_csv_path)
     print("Subsequent run: Deleted tempfile")

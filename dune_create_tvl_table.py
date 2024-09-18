@@ -1,13 +1,23 @@
 import requests
 import json
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get values from .env
+DUNE_API_KEY = os.getenv("DUNE_API_KEY")
+NAMESPACE = os.getenv("NAMESPACE1")
+TABLE_NAME = os.getenv("TABLE_NAME1")
 
 # URL to create the table on Dune
 url = "https://api.dune.com/api/v1/table/create"
 
 # Payload containing the details of the table to be created
 payload = {
-    "namespace": "{USERNAME}",  # Replace with your namespace
-    "table_name": "{TABLENAME}",
+    "namespace": NAMESPACE,  # Use environment variable for namespace
+    "table_name": TABLE_NAME,  # Use environment variable for table_name
     "description": "A table to store various metrics related to cryptocurrencies.",
     "schema": [
         {"name": "date", "type": "timestamp"},
@@ -59,7 +69,7 @@ payload = {
 
 # Headers including the required API key
 headers = {
-    "X-DUNE-API-KEY": "",
+    "X-DUNE-API-KEY": DUNE_API_KEY,  # Use environment variable for API key
     "Content-Type": "application/json"
 }
 

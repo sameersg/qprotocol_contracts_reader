@@ -1,13 +1,27 @@
 import requests
 import json
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from the .env file
+load_dotenv()
+
+# Get API key, namespaces, and table names from environment variables
+api_key = os.getenv("DUNE_API_KEY")
+namespace_one = os.getenv("NAMESPACE1")
+table_name_one = os.getenv("TABLE_NAME1")
 
 # URL to create the table on Dune
 url = "https://api.dune.com/api/v1/table/create"
 
+# Choose namespace and table dynamically (example for first API)
+namespace = namespace_one  # or namespace_two for the other API
+table_name = table_name_one  # or table_name_two for the other API
+
 # Payload containing the details of the table to be created
 payload = {
-    "namespace": "your_username",  # Replace 'your_username' with your actual namespace
-    "table_name": "general_stats_data",  # Specify the desired name of your table
+    "namespace": namespace,
+    "table_name": table_name,
     "description": "A table to store various metrics related to cryptocurrencies and blockchain stats.",
     "schema": [
         {"name": "timestamp", "type": "timestamp"},
@@ -26,12 +40,12 @@ payload = {
         {"name": "total_transactions", "type": "double"},
         {"name": "transactions_today", "type": "double"},
     ],
-    "is_private": False  # Set to True if you want the table to be private
+    "is_private": False
 }
 
-# Headers including the required API key
+# Headers including the API key
 headers = {
-    "X-DUNE-API-KEY": "your_api_key",  # Replace 'your_api_key' with your actual Dune API key
+    "X-DUNE-API-KEY": api_key,
     "Content-Type": "application/json"
 }
 
